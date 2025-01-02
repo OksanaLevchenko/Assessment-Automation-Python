@@ -3,7 +3,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 
 def search_words_in_json(json_file, words_to_search):
-    """Шукає слова в JSON-файлі."""
+    """Searches for words in a JSON file."""
     with open(json_file, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -16,7 +16,7 @@ def search_words_in_json(json_file, words_to_search):
     return word_count
 
 def count_cves(combined_json):
-    """Підраховує CVEs у JSON-файлі."""
+    """Counts CVEs in a JSON file."""
     words_to_search = ['HIGH', 'CRITICAL', 'MEDIUM', 'LOW', 'UNKNOWN']
     
     with ThreadPoolExecutor() as executor:

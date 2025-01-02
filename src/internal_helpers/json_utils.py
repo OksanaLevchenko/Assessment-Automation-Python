@@ -2,44 +2,53 @@ import os
 import json
 from concurrent.futures import ThreadPoolExecutor
 
+TARGET_VERSION = "v1.28.12"  # Версія для перевірки
+
 def load_json_file(file_path):
-    """Завантажує JSON-файл і повертає його вміст."""
+    """Loads a JSON file and returns its contents."""
     with open(file_path, 'r') as file:
         return json.load(file)
 
 def find_json_files(path):
-    """Знаходить всі JSON файли в зазначеній директорії."""
+    """Finds all JSON files in the specified directory."""
     json_files = []
     for root, dirs, files in os.walk(path):
         json_files.extend([os.path.join(root, file) for file in files if file.endswith(".json")])
     return json_files
 
+def check_image_version(image):
+    """Checks if the image tag matches the TARGET_VERSION."""
+    if isinstance(image, str) and ":" in image:
+        repo, tag = image.rsplit(":", 1)
+        return tag == TARGET_VERSION
+    return False
+
 def search_keys_in_json(data):
-    """Шукає всі зображення в полі 'image' та додає їх у список репозиторіїв."""
-    repositories = set()
+    """Searches for an image with a specific version in the 'image' field."""
+    matching_repositories = set()
 
     if isinstance(data, dict):
         image = data.get('image')
-        if isinstance(image, str):
-            repositories.add(image)
+        if isinstance(image, str) and check_image_version(image):
+            matching_repositories.add(image)
         elif isinstance(image, dict):
             repository = image.get('repository')
             tag = image.get('tag', '')
-            if repository:
-                full_repository = f"{repository}:{tag}" if tag else repository
-                repositories.add(full_repository)
+            if repository and tag == TARGET_VERSION:
+                full_repository = f"{repository}:{tag}"
+                matching_repositories.add(full_repository)
 
         for value in data.values():
-            repositories.update(search_keys_in_json(value))
+            matching_repositories.update(search_keys_in_json(value))
 
     elif isinstance(data, list):
         for item in data:
-            repositories.update(search_keys_in_json(item))
+            matching_repositories.update(search_keys_in_json(item))
 
-    return repositories
+    return matching_repositories
 
 def get_repository_from_json(json_file):
-    """Знаходить репозиторії у JSON-файлах."""
+    """Finds repositories in JSON files."""
     repositories = set()
     if os.path.getsize(json_file) == 0:
         return repositories
@@ -53,11 +62,11 @@ def get_repository_from_json(json_file):
     return repositories
 
 def merge_json_files(output_dir):
-    """Паралельно об'єднує всі результати у один JSON-файл."""
+    """Combines all results into a single JSON file in parallel."""
     combined_data = []
     
     def process_file(file):
-        if file.endswith("-cve.json"):
+        if file.endswith(".json"):
             with open(os.path.join(output_dir, file), 'r') as f:
                 try:
                     data = json.load(f)

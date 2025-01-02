@@ -6,7 +6,7 @@ from src.internal_kubescape import importKubescapeData
 from src.internal_trivy import importTrivyData
 
 def run_python_scripts(combined_json, polaris_file, kubescape_file, customer_name, notion_key):
-    """Імпортує дані в Notion."""
+    """Imports data into Notion."""
     trivy_data = load_json_file(combined_json) if combined_json else None
     polaris_data = load_json_file(polaris_file) if polaris_file else None
     kubescape_data = load_json_file(kubescape_file) if kubescape_file else None

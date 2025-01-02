@@ -1,5 +1,5 @@
 def find_customer(notion_session, customer):
-    response = notion_session.blocks.children.list('3f24de6e8b184673816984140674cf04')
+    response = notion_session.blocks.children.list('3f24de6e8b184673816984140674cf04') #update ID 
     resultArray = response['results']
     for result in resultArray:
         try:
